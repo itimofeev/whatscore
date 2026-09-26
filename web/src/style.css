@@ -164,3 +164,36 @@ button.big {
   font-weight: 700;
 }
 button.big.secondary { background: rgba(255, 255, 255, 0.2); color: var(--fg); }
+
+/* setup screen */
+.setup {
+  overflow-y: auto;
+  padding: 16px;
+}
+.setup-form {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.teams { display: flex; gap: 16px; }
+.team-col { flex: 1; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; }
+.team-col.team0 { background: color-mix(in srgb, var(--team0) 30%, var(--bg)); }
+.team-col.team1 { background: color-mix(in srgb, var(--team1) 30%, var(--bg)); }
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--muted); }
+.field input[type='text'], .field select {
+  font-size: 18px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: var(--fg);
+}
+.field input[type='checkbox'] { width: 24px; height: 24px; }
+.setup button.big { align-self: center; }
+@media (max-width: 600px) {
+  .teams { flex-direction: column; }
+  .options { grid-template-columns: 1fr; }
+}
