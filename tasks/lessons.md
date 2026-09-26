@@ -1,0 +1,5 @@
+# Lessons
+
+- 2026-09-27: Commit messages with double quotes break `git commit -m "..."` inside a heredoc-driven shell call. Use `git commit -F <file>` for multi-line messages.
+- 2026-09-27: GitHub Pages created via API while a non-main branch was the default gets an environment branch policy for that branch; set the default branch to `main` before enabling Pages, or fix `environments/github-pages/deployment-branch-policies`.
+- 2026-09-27: CSS `order` on grid children changes paint order; absolutely positioned overlays need an explicit z-index.
