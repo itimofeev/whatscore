@@ -90,9 +90,28 @@ function toPts(mine: number, theirs: number): Pts {
   return ([0, 15, 30, 40] as const)[Math.min(mine, 3)]
 }
 
+function rotation(config: MatchConfig): Array<{ team: Team; player: 0 | 1 }> {
+  const f = config.firstServingTeam
+  const o = other(f)
+  return [
+    { team: f, player: 0 },
+    { team: o, player: 0 },
+    { team: f, player: 1 },
+    { team: o, player: 1 },
+  ]
+}
+
 function serverOf(s: Internal, config: MatchConfig): Server {
-  const total = s.points[0] + s.points[1]
-  return { team: config.firstServingTeam, player: 0, side: total % 2 === 0 ? 'right' : 'left' }
+  let idx = s.gameIndex
+  let total: number
+  if (s.tiebreak) {
+    total = s.tiebreak.points[0] + s.tiebreak.points[1]
+    idx += total === 0 ? 0 : 1 + Math.floor((total - 1) / 2)
+  } else {
+    total = s.points[0] + s.points[1]
+  }
+  const { team, player } = rotation(config)[idx % 4]
+  return { team, player, side: total % 2 === 0 ? 'right' : 'left' }
 }
 
 export function reduce(config: MatchConfig, events: MatchEvent[]): MatchState {
