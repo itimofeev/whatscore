@@ -28,3 +28,17 @@ PWA-фронтенд WhatScore. Vanilla TypeScript, без UI-фреймворк
 Состояние никогда не мутируется: `reduce` заново проходит журнал.
 Отмена любой глубины и будущая синхронизация между телефонами следуют
 из этого бесплатно.
+
+## Деплой
+
+Push в `main` собирает `web/` и публикует на GitHub Pages
+(`.github/workflows/deploy.yml`). Один раз в настройках репозитория
+GitHub: Settings → Pages → Source: GitHub Actions. Репозиторий должен
+называться `whatscore`, потому что base path `/whatscore/`.
+
+Адрес: `https://itimofeev.github.io/whatscore/`. На телефоне в Chrome:
+меню → Add to Home screen. Установленное приложение открывается на весь
+экран в горизонтальной ориентации и работает без интернета. Голосовые
+команды требуют интернет.
+
+Иконки генерируются `node scripts/make-icons.mjs`.

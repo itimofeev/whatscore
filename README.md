@@ -16,7 +16,8 @@
 
 ## Запуск
 
-См. `web/README.md`.
+Опубликованная версия: `https://itimofeev.github.io/whatscore/`.
+Локально: см. `web/README.md`.
 
 ## Этапы
 
