@@ -166,8 +166,10 @@ button.big {
 button.big.secondary { background: rgba(255, 255, 255, 0.2); color: var(--fg); }
 
 /* setup screen */
-.setup {
+/* #app.setup: the id selector is needed to beat `#app { overflow: hidden }` above */
+#app.setup {
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 16px;
 }
 .setup-form {
@@ -192,7 +194,15 @@ button.big.secondary { background: rgba(255, 255, 255, 0.2); color: var(--fg); }
   color: var(--fg);
 }
 .field input[type='checkbox'] { width: 24px; height: 24px; }
-.setup .actions { display: flex; gap: 16px; justify-content: center; }
+.setup .actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 12px 0;
+  background: var(--bg);
+}
 @media (max-width: 600px) {
   .teams { flex-direction: column; }
   .options { grid-template-columns: 1fr; }
