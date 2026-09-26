@@ -28,18 +28,61 @@ function isDeciding(s: Internal, mode: DeuceMode): boolean {
 
 function applyPoint(s: Internal, team: Team, config: MatchConfig): void {
   if (s.finished !== null) return
+  if (s.tiebreak) {
+    applyTiebreakPoint(s, team, config)
+    return
+  }
   const deciding = isDeciding(s, config.deuceMode)
   s.points[team]++
   if (s.points[0] === s.points[1] && s.points[0] >= 3) s.deuces++
   const won = deciding || (s.points[team] >= 4 && s.points[team] - s.points[other(team)] >= 2)
-  if (won) gameWon(s, team)
+  if (won) gameWon(s, team, config)
 }
 
-function gameWon(s: Internal, team: Team): void {
+function applyTiebreakPoint(s: Internal, team: Team, config: MatchConfig): void {
+  const tb = s.tiebreak!
+  tb.points[team]++
+  const won = tb.points[team] >= tb.target && tb.points[team] - tb.points[other(team)] >= 2
+  if (won) {
+    gameWon(s, team, config)
+    return
+  }
+  const total = tb.points[0] + tb.points[1]
+  if (total % 6 === 0) s.sideChanges++
+}
+
+function setsWon(s: Internal, team: Team): number {
+  return s.sets.filter((set) => set[team] > set[other(team)]).length
+}
+
+function gameWon(s: Internal, team: Team, config: MatchConfig): void {
+  const wasTiebreak = s.tiebreak !== null
+  s.tiebreak = null
   s.points = [0, 0]
   s.deuces = 0
   s.gameIndex++
-  s.sets[s.sets.length - 1][team]++
+  const set = s.sets[s.sets.length - 1]
+  set[team]++
+
+  const setWon = wasTiebreak || (set[team] >= 6 && set[team] - set[other(team)] >= 2)
+  if (setWon) {
+    const need = config.format === 'one_set' ? 1 : 2
+    if (setsWon(s, team) >= need) {
+      s.finished = team
+      return
+    }
+  }
+  // after a winning tiebreak point the "every 6 points" rule is skipped on purpose:
+  // the change is already counted here as the end of an odd-numbered game (13)
+  if ((set[0] + set[1]) % 2 === 1) s.sideChanges++
+  if (!setWon) {
+    if (set[0] === 6 && set[1] === 6) s.tiebreak = { points: [0, 0], target: 7 }
+    return
+  }
+  s.sets.push([0, 0])
+  if (config.format === 'best_of_3_super_tb' && setsWon(s, 0) === 1 && setsWon(s, 1) === 1) {
+    s.tiebreak = { points: [0, 0], target: 10 }
+  }
 }
 
 function toPts(mine: number, theirs: number): Pts {
