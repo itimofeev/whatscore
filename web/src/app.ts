@@ -16,6 +16,7 @@ export class App {
   private screen: MatchScreen | null = null
   private recognizer: Recognizer | null = null
   private listening = false
+  private announcing = 0
 
   constructor(
     private readonly root: HTMLElement,
@@ -39,7 +40,8 @@ export class App {
   private showSetup(): void {
     this.stopVoice()
     this.screen = null
-    renderSetup(this.root, this.config, (config) => this.startMatch(config))
+    const resume = this.storage.loadMatch() ? () => this.showMatch() : undefined
+    renderSetup(this.root, this.config, (config) => this.startMatch(config), resume)
   }
 
   private startMatch(config: MatchConfig): void {
@@ -136,8 +138,10 @@ export class App {
   }
 
   private async say(text: string): Promise<void> {
+    // overlapping announcements: the mic comes back only after the last one
+    this.announcing++
     this.recognizer?.pause()
     await speak(text, this.config.voice.lang)
-    this.recognizer?.resume()
+    if (--this.announcing === 0) this.recognizer?.resume()
   }
 }

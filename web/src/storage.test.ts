@@ -72,3 +72,22 @@ describe('storage', () => {
     expect(mergeConfig('x')).toEqual(defaultConfig())
   })
 })
+
+describe('mergeConfig team fields', () => {
+  test('a team without players gets default players', () => {
+    const c = mergeConfig({ teams: [{ name: 'Us' }, { name: 'Them' }] })
+    expect(c.teams[0]).toEqual({ name: 'Us', players: ['Red 1', 'Red 2'] })
+    expect(c.teams[1]).toEqual({ name: 'Them', players: ['Blue 1', 'Blue 2'] })
+  })
+
+  test('a team with a broken players array gets default players', () => {
+    const c = mergeConfig({ teams: [{ name: 'Us', players: ['Only one'] }, { players: 'x' }] })
+    expect(c.teams[0].players).toEqual(['Red 1', 'Red 2'])
+    expect(c.teams[1]).toEqual({ name: 'Blue', players: ['Blue 1', 'Blue 2'] })
+  })
+
+  test('firstServingTeam outside 0|1 falls back to 0', () => {
+    expect(mergeConfig({ firstServingTeam: 5 }).firstServingTeam).toBe(0)
+    expect(mergeConfig({ firstServingTeam: 1 }).firstServingTeam).toBe(1)
+  })
+})

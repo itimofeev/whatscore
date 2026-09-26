@@ -37,7 +37,12 @@ function checkbox(checked: boolean): HTMLInputElement {
   return c
 }
 
-export function renderSetup(root: HTMLElement, initial: MatchConfig, onStart: (config: MatchConfig) => void): void {
+export function renderSetup(
+  root: HTMLElement,
+  initial: MatchConfig,
+  onStart: (config: MatchConfig) => void,
+  onResume?: () => void,
+): void {
   root.innerHTML = ''
   root.className = 'setup'
   const form = document.createElement('form')
@@ -99,7 +104,19 @@ export function renderSetup(root: HTMLElement, initial: MatchConfig, onStart: (c
   start.className = 'big'
   start.textContent = 'Start'
 
-  form.append(teamsRow, options, start)
+  const actions = document.createElement('div')
+  actions.className = 'actions'
+  if (onResume) {
+    const back = document.createElement('button')
+    back.type = 'button'
+    back.className = 'big secondary'
+    back.textContent = 'Back to match'
+    back.addEventListener('click', onResume)
+    actions.append(back)
+  }
+  actions.append(start)
+
+  form.append(teamsRow, options, actions)
   form.addEventListener('submit', (e) => {
     e.preventDefault()
     const deuceMode: DeuceMode = deuce.value === 'advantage' ? 'advantage' : (Number(deuce.value) as 1 | 2 | 3)

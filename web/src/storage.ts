@@ -1,4 +1,4 @@
-import { defaultConfig, type MatchConfig, type MatchEvent } from './domain/types'
+import { defaultConfig, type MatchConfig, type MatchEvent, type TeamConfig } from './domain/types'
 
 export interface StoredMatch {
   config: MatchConfig
@@ -26,14 +26,28 @@ function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
 }
 
+function isPlayers(v: unknown): v is [string, string] {
+  return Array.isArray(v) && v.length === 2 && v.every((x) => typeof x === 'string')
+}
+
+function mergeTeam(d: TeamConfig, p: unknown): TeamConfig {
+  if (!isObject(p)) return d
+  return {
+    name: typeof p.name === 'string' ? p.name : d.name,
+    players: isPlayers(p.players) ? p.players : d.players,
+  }
+}
+
 export function mergeConfig(partial: unknown): MatchConfig {
   const d = defaultConfig()
   if (!isObject(partial)) return d
   const p = partial as Partial<MatchConfig>
+  const teams = Array.isArray(p.teams) ? p.teams : []
   return {
     ...d,
     ...p,
-    teams: Array.isArray(p.teams) && p.teams.length === 2 ? (p.teams as MatchConfig['teams']) : d.teams,
+    teams: [mergeTeam(d.teams[0], teams[0]), mergeTeam(d.teams[1], teams[1])],
+    firstServingTeam: p.firstServingTeam === 1 ? 1 : 0,
     voice: { ...d.voice, ...(isObject(p.voice) ? p.voice : {}) },
   }
 }

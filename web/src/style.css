@@ -192,7 +192,7 @@ button.big.secondary { background: rgba(255, 255, 255, 0.2); color: var(--fg); }
   color: var(--fg);
 }
 .field input[type='checkbox'] { width: 24px; height: 24px; }
-.setup button.big { align-self: center; }
+.setup .actions { display: flex; gap: 16px; justify-content: center; }
 @media (max-width: 600px) {
   .teams { flex-direction: column; }
   .options { grid-template-columns: 1fr; }

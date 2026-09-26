@@ -25,6 +25,7 @@ export class Recognizer {
   private rec: Rec | null = null
   private active = false
   private paused = false
+  private failures = 0
 
   constructor(
     private readonly lang: Lang,
@@ -71,14 +72,22 @@ export class Recognizer {
         if (res.isFinal) this.onTranscript(res[0].transcript)
       }
     }
+    let failed = false
     r.onend = () => {
       if (this.rec !== r) return
       this.rec = null
-      // Chrome on Android stops after a pause; restart while the user wants to listen
-      setTimeout(() => this.spawn(), 300)
+      if (!failed) this.failures = 0
+      // Chrome on Android stops after a pause; restart while the user wants to listen.
+      // Offline it fails instantly with 'network', so back off instead of spinning.
+      const delay = Math.min(300 * 2 ** this.failures, 5000)
+      setTimeout(() => this.spawn(), delay)
     }
     r.onerror = (e) => {
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') this.stop()
+      else if (e.error === 'network' || e.error === 'audio-capture') {
+        failed = true
+        this.failures++
+      }
     }
     this.rec = r
     r.start()
