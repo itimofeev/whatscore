@@ -34,6 +34,18 @@ describe('english commands', () => {
     expect(parseCommand('point team', teams, 'en')).toBeNull()
   })
 
+  test('homophones and near misses of a team name still count', () => {
+    expect(parseCommand('point read', names, 'en')).toEqual({ type: 'point', team: 0 })
+    expect(parseCommand('point rad', names, 'en')).toEqual({ type: 'point', team: 0 })
+    expect(parseCommand('point bloo', names, 'en')).toBeNull() // two edits away is too far
+    expect(parseCommand('pointed red', names, 'en')).toEqual({ type: 'point', team: 0 })
+    expect(parseCommand('points blue', names, 'en')).toEqual({ type: 'point', team: 1 })
+  })
+
+  test('near miss does not apply to very short names', () => {
+    expect(parseCommand('point ab', ['A', 'B'], 'en')).toBeNull()
+  })
+
   test('name prefix matches inflected forms', () => {
     const teams: [string, string] = ['Ilya', 'Andreas']
     expect(parseCommand('point ilyas', teams, 'en')).toEqual({ type: 'point', team: 0 })

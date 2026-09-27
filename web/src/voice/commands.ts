@@ -39,9 +39,34 @@ function hasAny(ws: string[], keys: string[]): boolean {
   return ws.some((w) => keys.includes(w))
 }
 
+// 'pointed', 'points', 'очков' still mean the keyword
+function hasKeyword(ws: string[], keys: string[]): boolean {
+  return ws.some((w) => keys.some((k) => w.startsWith(k)))
+}
+
+function editDistance(a: string, b: string): number {
+  const prev = Array.from({ length: b.length + 1 }, (_, i) => i)
+  for (let i = 1; i <= a.length; i++) {
+    let diag = prev[0]
+    prev[0] = i
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = prev[j]
+      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diag + (a[i - 1] === b[j - 1] ? 0 : 1))
+      diag = tmp
+    }
+  }
+  return prev[b.length]
+}
+
+// speech recognition returns homophones ('read' for 'red'), so one edit is tolerated on names of 3+ letters
+function similar(word: string, name: string): boolean {
+  if (word.startsWith(stem(name))) return true
+  return name.length >= 3 && editDistance(word, name) <= 1
+}
+
 function mentioned(ws: string[], nameWords: string[], aliases: string[]): boolean {
-  const stems = nameWords.filter((w) => w.length >= 2).map(stem)
-  return ws.some((w) => aliases.includes(w) || stems.some((s) => w.startsWith(s)))
+  const names = nameWords.filter((w) => w.length >= 2)
+  return ws.some((w) => aliases.includes(w) || names.some((n) => similar(w, n)))
 }
 
 export function parseCommand(transcript: string, teamNames: [string, string], lang: Lang): Command | null {
@@ -50,7 +75,7 @@ export function parseCommand(transcript: string, teamNames: [string, string], la
   if (ws.length === 0) return null
   if (hasAny(ws, v.undo)) return { type: 'undo' }
   if (hasAny(ws, v.score)) return { type: 'score' }
-  if (!hasAny(ws, v.point)) return null
+  if (!hasKeyword(ws, v.point)) return null
 
   const nameWords = teamNames.map(words) as [string[], string[]]
   const distinct: [string[], string[]] = [

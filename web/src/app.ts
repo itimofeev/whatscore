@@ -131,7 +131,10 @@ export class App {
 
   private onTranscript(text: string): void {
     const cmd = parseCommand(text, [this.config.teams[0].name, this.config.teams[1].name], this.config.voice.lang)
-    if (!cmd) return
+    if (!cmd) {
+      this.screen?.toast(`Heard: ${text.trim()}`)
+      return
+    }
     if (cmd.type === 'point') this.point(cmd.team)
     else if (cmd.type === 'undo') this.undo()
     else void this.say(scoreText(this.state, this.config))

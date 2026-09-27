@@ -145,3 +145,16 @@ describe('announcements and the microphone', () => {
     expect(recStarts).toBe(2)
   })
 })
+
+describe('unrecognised speech', () => {
+  test('shows what was heard so the player can adjust', async () => {
+    const kv = memory()
+    const c = defaultConfig()
+    c.voice = { enabled: true, announce: false, lang: 'en' }
+    kv.setItem('whatscore.match', JSON.stringify({ config: c, events: [] }))
+    const { app, root } = await bootApp(kv)
+    ;(app as unknown as { onTranscript(t: string): void }).onTranscript('hello there')
+    expect(root.querySelector('.toast')!.textContent).toBe('Heard: hello there')
+    expect(pts(root)).toEqual(['0', '0'])
+  })
+})
