@@ -37,9 +37,18 @@ describe('english commands', () => {
   test('homophones and near misses of a team name still count', () => {
     expect(parseCommand('point read', names, 'en')).toEqual({ type: 'point', team: 0 })
     expect(parseCommand('point rad', names, 'en')).toEqual({ type: 'point', team: 0 })
-    expect(parseCommand('point bloo', names, 'en')).toBeNull() // two edits away is too far
+    expect(parseCommand('point blast', names, 'en')).toBeNull() // two edits away is too far
     expect(parseCommand('pointed red', names, 'en')).toEqual({ type: 'point', team: 0 })
     expect(parseCommand('points blue', names, 'en')).toEqual({ type: 'point', team: 1 })
+  })
+
+  test('what phones actually hear on a padel court', () => {
+    expect(parseCommand('point thread', names, 'en')).toEqual({ type: 'point', team: 0 })
+    expect(parseCommand('coin thread', names, 'en')).toEqual({ type: 'point', team: 0 })
+    expect(parseCommand('Redpoint', names, 'en')).toEqual({ type: 'point', team: 0 })
+    expect(parseCommand('find blue', names, 'en')).toEqual({ type: 'point', team: 1 })
+    expect(parseCommand('point bloom', names, 'en')).toEqual({ type: 'point', team: 1 })
+    expect(parseCommand('winpoint', names, 'en')).toBeNull()
   })
 
   test('near miss does not apply to very short names', () => {

@@ -108,11 +108,12 @@ export class App {
     if (!speechRecognitionSupported || this.recognizer) return
     this.recognizer = new Recognizer(
       this.config.voice.lang,
-      (text) => this.onTranscript(text),
+      (alternatives) => this.onTranscript(alternatives),
       (listening) => {
         this.listening = listening
         this.draw()
       },
+      (error) => this.screen?.toast(`Mic error: ${error}`),
     )
     this.recognizer.start()
   }
@@ -124,15 +125,22 @@ export class App {
   }
 
   private toggleVoice(): void {
-    if (this.recognizer) this.stopVoice()
-    else this.startVoice()
+    // a recognizer the browser shut down (mic refused) is off too: one tap starts a new one
+    const on = this.recognizer?.active ?? false
+    this.stopVoice()
+    if (!on) this.startVoice()
     this.draw()
   }
 
-  private onTranscript(text: string): void {
-    const cmd = parseCommand(text, [this.config.teams[0].name, this.config.teams[1].name], this.config.voice.lang)
+  private onTranscript(alternatives: string[]): void {
+    const names: [string, string] = [this.config.teams[0].name, this.config.teams[1].name]
+    let cmd = null
+    for (const text of alternatives) {
+      cmd = parseCommand(text, names, this.config.voice.lang)
+      if (cmd) break
+    }
     if (!cmd) {
-      this.screen?.toast(`Heard: ${text.trim()}`)
+      this.screen?.toast(`Heard: ${alternatives[0]?.trim() ?? ''}`)
       return
     }
     if (cmd.type === 'point') this.point(cmd.team)

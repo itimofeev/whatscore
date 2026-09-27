@@ -12,6 +12,8 @@ interface FakeRec {
 
 let starts = 0
 let failWith: string | null = 'network'
+let throwOnStart = 0
+const instances: FakeRecognition[] = []
 
 class FakeRecognition implements FakeRec {
   lang = ''
@@ -20,8 +22,16 @@ class FakeRecognition implements FakeRec {
   onresult: ((e: unknown) => void) | null = null
   onend: (() => void) | null = null
   onerror: ((e: { error: string }) => void) | null = null
+  maxAlternatives = 1
+  constructor() {
+    instances.push(this)
+  }
   start() {
     starts++
+    if (throwOnStart > 0) {
+      throwOnStart--
+      throw new Error('recognition has already started')
+    }
     // Chrome offline: 'network' error then 'end' right away
     setTimeout(() => {
       if (failWith) this.onerror?.({ error: failWith })
@@ -35,6 +45,8 @@ beforeEach(() => {
   vi.useFakeTimers()
   starts = 0
   failWith = 'network'
+  throwOnStart = 0
+  instances.length = 0
   Object.assign(window, { webkitSpeechRecognition: FakeRecognition })
 })
 
@@ -74,4 +86,46 @@ test('stop prevents any further restart', async () => {
   r.stop()
   await vi.advanceTimersByTimeAsync(10000)
   expect(starts).toBe(1)
+})
+
+test('passes every alternative of a final result', async () => {
+  failWith = null
+  const { Recognizer } = await import('./recognizer')
+  const heard: string[][] = []
+  const r = new Recognizer('en', (alts) => heard.push(alts), () => undefined)
+  r.start()
+  const rec = instances[0]
+  expect(rec.maxAlternatives).toBeGreaterThan(1)
+  rec.onresult?.({
+    resultIndex: 0,
+    results: [{ isFinal: true, length: 2, 0: { transcript: 'point read' }, 1: { transcript: 'point red' } }],
+  })
+  expect(heard).toEqual([['point read', 'point red']])
+  r.stop()
+})
+
+test('a start() that throws is retried instead of leaving a dead recognizer', async () => {
+  failWith = null
+  throwOnStart = 1
+  const { Recognizer } = await import('./recognizer')
+  const listening: boolean[] = []
+  const r = new Recognizer('en', () => undefined, (l) => listening.push(l))
+  r.start()
+  expect(r.active).toBe(true)
+  await vi.advanceTimersByTimeAsync(1000)
+  expect(starts).toBeGreaterThanOrEqual(2)
+  expect(listening.at(-1)).toBe(true)
+  r.stop()
+})
+
+test('a refused microphone deactivates the recognizer and reports the error', async () => {
+  failWith = 'not-allowed'
+  const { Recognizer } = await import('./recognizer')
+  const errors: string[] = []
+  const r = new Recognizer('en', () => undefined, () => undefined, (e) => errors.push(e))
+  r.start()
+  await vi.advanceTimersByTimeAsync(5000)
+  expect(starts).toBe(1)
+  expect(r.active).toBe(false)
+  expect(errors).toEqual(['not-allowed'])
 })

@@ -14,7 +14,11 @@ const spoken: FakeUtterance[] = []
 
 let recStarts = 0
 let recAborts = 0
+const recs: FakeRecognition[] = []
 class FakeRecognition {
+  constructor() {
+    recs.push(this)
+  }
   lang = ''
   continuous = false
   interimResults = false
@@ -71,6 +75,7 @@ beforeEach(() => {
   spoken.length = 0
   recStarts = 0
   recAborts = 0
+  recs.length = 0
   document.body.innerHTML = ''
 })
 
@@ -153,8 +158,40 @@ describe('unrecognised speech', () => {
     c.voice = { enabled: true, announce: false, lang: 'en' }
     kv.setItem('whatscore.match', JSON.stringify({ config: c, events: [] }))
     const { app, root } = await bootApp(kv)
-    ;(app as unknown as { onTranscript(t: string): void }).onTranscript('hello there')
+    ;(app as unknown as { onTranscript(t: string[]): void }).onTranscript(['hello there', 'hello here'])
     expect(root.querySelector('.toast')!.textContent).toBe('Heard: hello there')
     expect(pts(root)).toEqual(['0', '0'])
+  })
+
+  test('any alternative that parses counts', async () => {
+    const kv = memory()
+    const c = defaultConfig()
+    c.voice = { enabled: true, announce: false, lang: 'en' }
+    kv.setItem('whatscore.match', JSON.stringify({ config: c, events: [] }))
+    const { app, root } = await bootApp(kv)
+    ;(app as unknown as { onTranscript(t: string[]): void }).onTranscript(['point rat', 'point red'])
+    expect(pts(root)).toEqual(['15', '0'])
+  })
+})
+
+describe('mic button', () => {
+  function voiceKv(): KV {
+    const kv = memory()
+    const c = defaultConfig()
+    c.voice = { enabled: true, announce: false, lang: 'en' }
+    kv.setItem('whatscore.match', JSON.stringify({ config: c, events: [] }))
+    return kv
+  }
+
+  test('one tap turns the mic back on after the browser refused it', async () => {
+    const { root } = await bootApp(voiceKv())
+    expect(recStarts).toBe(1)
+    recs.at(-1)!.onerror!({ error: 'not-allowed' })
+    recs.at(-1)!.onend!()
+    expect(root.querySelector('.toast')!.textContent).toBe('Mic error: not-allowed')
+    expect(root.querySelector('.mic')!.textContent).toBe('🔇')
+    ;(root.querySelector('.mic') as HTMLButtonElement).click()
+    expect(recStarts).toBe(2)
+    expect(root.querySelector('.mic')!.textContent).toBe('🎤')
   })
 })
