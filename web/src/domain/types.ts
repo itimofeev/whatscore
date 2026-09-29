@@ -20,7 +20,6 @@ export interface MatchConfig {
   firstServingTeam: Team
   deuceMode: DeuceMode
   format: MatchFormat
-  swapZonesWithSides: boolean
   voice: VoiceConfig
 }
 
@@ -63,7 +62,6 @@ export function defaultConfig(): MatchConfig {
     firstServingTeam: 0,
     deuceMode: 2,
     format: 'best_of_3',
-    swapZonesWithSides: true,
     voice: { enabled: false, announce: false, lang: 'en' },
   }
 }

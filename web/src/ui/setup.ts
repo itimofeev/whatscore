@@ -79,7 +79,6 @@ export function renderSetup(
     ['best_of_3', 'Best of 3 sets'],
     ['best_of_3_super_tb', 'Best of 3, super tiebreak decider'],
   ])
-  const swap = checkbox(initial.swapZonesWithSides)
   const voiceEnabled = checkbox(initial.voice.enabled)
   const announce = checkbox(initial.voice.announce)
   const lang = select(initial.voice.lang, [
@@ -93,7 +92,6 @@ export function renderSetup(
     field('First serve', firstTeam),
     field('Deuce', deuce),
     field('Format', format),
-    field('Swap sides on screen with court', swap),
     field('Voice commands', voiceEnabled),
     field('Announce score after each point', announce),
     field('Voice language', lang),
@@ -128,7 +126,6 @@ export function renderSetup(
       firstServingTeam: Number(firstTeam.value) as Team,
       deuceMode,
       format: format.value as MatchFormat,
-      swapZonesWithSides: swap.checked,
       voice: { enabled: voiceEnabled.checked, announce: announce.checked, lang: lang.value as 'en' | 'ru' },
     })
   })

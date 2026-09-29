@@ -195,3 +195,16 @@ describe('mic button', () => {
     expect(root.querySelector('.mic')!.textContent).toBe('🎤')
   })
 })
+
+describe('center bar', () => {
+  test('zones stay put after a side change and the bar names the server', async () => {
+    const { root } = await bootApp(memory())
+    root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }))
+    expect(root.querySelector('.server')!.textContent).toBe('Serving◀ Red 1right court')
+    for (let i = 0; i < 4; i++) tap(root, 0)
+    expect(root.classList.contains('swapped')).toBe(false)
+    expect(root.querySelector('.server')!.textContent).toBe('ServingBlue 1 ▶right court')
+    tap(root, 1)
+    expect(root.querySelector('.server')!.textContent).toBe('ServingBlue 1 ▶left court')
+  })
+})

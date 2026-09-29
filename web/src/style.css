@@ -48,9 +48,6 @@ html, body, #app {
   border: 0.6vh solid var(--accent);
   pointer-events: none;
 }
-.swapped .zone.team0 { order: 3; }
-.swapped .zone.team1 { order: 1; }
-.swapped .bar { order: 2; }
 
 .zone .pts {
   font-size: min(48vh, 30vw);
@@ -87,7 +84,10 @@ html, body, #app {
   min-width: 22vw;
   text-align: center;
 }
-.server { font-size: 4.5vh; font-weight: 700; white-space: pre; }
+.server { display: flex; flex-direction: column; align-items: center; gap: 1vh; }
+.server-label { font-size: 3vh; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.server-name { font-size: 6vh; font-weight: 800; white-space: nowrap; }
+.server-side { font-size: 3.5vh; font-weight: 600; }
 .server.team0 { color: var(--team0); }
 .server.team1 { color: var(--team1); }
 .deciding {
@@ -140,7 +140,6 @@ html, body, #app {
 .ctl.on { opacity: 1; background: var(--accent); }
 
 .end {
-  /* z-index: `order` on the zones changes paint order, the overlay must stay on top */
   position: absolute;
   z-index: 30;
   inset: 0;

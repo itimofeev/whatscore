@@ -33,9 +33,10 @@ interface Zone {
 }
 
 export class MatchScreen {
-  private readonly root: HTMLElement
   private readonly zones: [Zone, Zone]
   private readonly serverLine: HTMLElement
+  private readonly serverName: HTMLElement
+  private readonly serverSide: HTMLElement
   private readonly deciding: HTMLElement
   private readonly toastEl: HTMLElement
   private readonly micBtn: HTMLButtonElement
@@ -45,7 +46,6 @@ export class MatchScreen {
   private toastTimer: number | null = null
 
   constructor(root: HTMLElement, private readonly h: MatchScreenHandlers) {
-    this.root = root
     root.innerHTML = ''
     root.className = 'match'
 
@@ -53,6 +53,9 @@ export class MatchScreen {
 
     const bar = el('div', 'bar')
     this.serverLine = el('div', 'server')
+    this.serverName = el('div', 'server-name')
+    this.serverSide = el('div', 'server-side')
+    this.serverLine.append(el('div', 'server-label', 'Serving'), this.serverName, this.serverSide)
     this.deciding = el('div', 'deciding')
     bar.append(this.serverLine, this.deciding)
 
@@ -110,9 +113,6 @@ export class MatchScreen {
 
   render(v: MatchScreenView): void {
     const { state, config } = v
-    const swapped = config.swapZonesWithSides && state.swapped
-    this.root.classList.toggle('swapped', swapped)
-
     for (const team of [0, 1] as const) {
       const z = this.zones[team]
       z.pts.textContent = String(state.game.points[team])
@@ -126,7 +126,9 @@ export class MatchScreen {
 
     const sv = state.server
     const serverName = config.teams[sv.team].players[sv.player]
-    this.serverLine.textContent = `${serverName}  ${sv.side === 'right' ? 'R' : 'L'}`
+    // team 0 is always the left zone, the arrow points at the serving team
+    this.serverName.textContent = sv.team === 0 ? `◀ ${serverName}` : `${serverName} ▶`
+    this.serverSide.textContent = `${sv.side} court`
     this.serverLine.className = `server team${sv.team}`
 
     if (state.decidingPoint) {
